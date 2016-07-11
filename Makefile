@@ -4,6 +4,10 @@
 # Comments in this file are targeted only to the developer, do not
 # expect to learn how to build the kernel reading this file.
 
+
+# Application name
+APPNAME = myapp
+
 # Do not:
 # o  use make's built-in rules and variables
 #    (this increases performance and avoids hard-to-debug behaviour);
@@ -332,29 +336,29 @@ endif # $(dot-config)
 # command line.
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults to vmlinux, but the arch makefile usually adds further targets
-all: myapp
+all: $(APPNAME)
 
 
 objs-y		:= main
 libs-y		:= lib
 
-myapp-dirs	:= $(objs-y) $(libs-y)
-myapp-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
-myapp-libs	:= $(patsubst %,%/lib.a, $(libs-y))
-myapp-all	:= $(myapp-objs) $(myapp-libs)
+$(APPNAME)-dirs	:= $(objs-y) $(libs-y)
+$(APPNAME)-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
+$(APPNAME)-libs	:= $(patsubst %,%/lib.a, $(libs-y))
+$(APPNAME)-all	:= $($(APPNAME)-objs) $($(APPNAME)-libs)
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
 # relevant sections renamed as per the linker script.
-quiet_cmd_myapp = LD      $@
-      cmd_myapp = $(CC) $(LDFLAGS) -o $@                          \
-      -Wl,--start-group $(myapp-libs) $(myapp-objs) -Wl,--end-group
+quiet_cmd_$(APPNAME) = LD      $@
+      cmd_$(APPNAME) = $(CC) $(LDFLAGS) -o $@                          \
+      -Wl,--start-group $($(APPNAME)-libs) $($(APPNAME)-objs) -Wl,--end-group
 
-myapp: $(myapp-all)
-	$(call if_changed,myapp)
+$(APPNAME): $($(APPNAME)-all)
+	$(call if_changed,$(APPNAME))
 
 # The actual objects are generated when descending, 
 # make sure no implicit rule kicks in
-$(sort $(myapp-all)): $(myapp-dirs) ;
+$(sort $($(APPNAME)-all)): $($(APPNAME)-dirs) ;
 
 # Handle descending into subdirectories listed in $(vmlinux-dirs)
 # Preset locale variables to speed up the build process. Limit locale
@@ -364,8 +368,8 @@ $(sort $(myapp-all)): $(myapp-dirs) ;
 
 #PHONY += $(vmlinux-dirs)
 #$(vmlinux-dirs): prepare scripts
-PHONY += $(myapp-dirs)
-$(myapp-dirs): scripts_basic
+PHONY += $($(APPNAME)-dirs)
+$($(APPNAME)-dirs): scripts_basic
 	$(Q)$(MAKE) $(build)=$@
 
 
@@ -378,7 +382,7 @@ $(myapp-dirs): scripts_basic
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES +=	myapp
+CLEAN_FILES +=	$(APPNAME)
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include/generated
@@ -388,7 +392,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(myapp-dirs))
+clean-dirs      := $(addprefix _clean_, $($(APPNAME)-dirs))
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
@@ -457,7 +461,7 @@ help:
 	@echo  ''
 	@echo  'Other generic targets:'
 	@echo  '  all		  - Build all targets marked with [*]'
-	@echo  '* myapp	  	  - Build the application'
+	@echo  '* $(APPNAME)	  	  - Build the application'
 	@echo  '  dir/            - Build all files in dir and below'
 	@echo  '  dir/file.[oisS] - Build specified target only'
 	@echo  '  dir/file.lst    - Build specified mixed source/assembly target only'
